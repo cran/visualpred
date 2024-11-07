@@ -171,13 +171,13 @@ Dime1=Dime1,Dime2=Dime2,bins=bins,selec=selec)
     formu<-paste("clasefin~.")
 
     datafnuevo$clasefin<-ifelse(datafnuevo[,c(vardep)]==minoritaria,1,0)
-    datafnuevo$clasefin<-as.character(datafnuevo$clasefin)
+#   datafnuevo$clasefin<-as.character(datafnuevo$clasefin)
 
     a2<-datafnuevo
     a2[,c(vardep)]<-NULL
 
     dataf$clasefin<-ifelse(dataf[,c(vardep)]==minoritaria,1,0)
-    dataf$clasefin<-as.character(dataf$clasefin)
+#   dataf$clasefin<-as.character(dataf$clasefin)
 
     a3<-dataf
     a3[,c(vardep)]<-NULL

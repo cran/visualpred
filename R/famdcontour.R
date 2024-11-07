@@ -429,7 +429,7 @@ if (any(proba=="")==TRUE)
     formu<-paste("clasefin~.")
 
     dataf$clasefin<-ifelse(dataf[,c(vardep)]==minoritaria,1,0)
-    dataf$clasefin<-as.character(dataf$clasefin)
+#   dataf$clasefin<-as.character(dataf$clasefin)
 
     a3<-dataf
     a3[,c(vardep)]<-NULL
