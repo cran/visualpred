@@ -1,5 +1,5 @@
 ---
-title: "Comparing algorithms"
+title: "2-Comparing algorithms"
 output:
   html_document:
     df_print: paged
@@ -8,7 +8,7 @@ output:
     highlight: github
 vignette: >
   %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{Comparing algorithms}
+  %\VignetteIndexEntry{2-Comparing algorithms}
   %\usepackage[UTF-8]{inputenc}        
 ---
 
@@ -62,7 +62,7 @@ title2="  ",selec=0,modelo="svm",classvar=0)
 
 Next plot illustrates the effects of different tuning settings for a neural network modeling of the spiral dataset.
 
-```{r,echo=F}
+```{r tuning_representation, echo=FALSE, fig.height=10, fig.width=12}
 require(egg)
 library(visualpred)
 dataf<-spiral

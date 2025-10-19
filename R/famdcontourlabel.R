@@ -5,8 +5,9 @@
 #' @param Idt Identification variable, default "", row number
 #' @param inf,sup Quantiles for x,y outliers
 #' @param cutprob cut point for outliers based on prob.estimation error
+#' @param sizerepel size for outliers label, default=3
 #' @param ... options to be passed from famdcontour
-#' @keywords FAMD, classification, contour_curves, outliers
+#' @keywords FAMD classification contour_curves outliers
 #' @export
 #' @import MASS
 #' @import ggplot2
@@ -14,7 +15,7 @@
 #' @importFrom magrittr %>%
 #' @importFrom nnet nnet
 #' @import gbm
-#' @import e1071
+#' @importFrom e1071 svm
 #' @importFrom stats aggregate
 #' @importFrom dplyr inner_join
 #' @importFrom randomForest randomForest
@@ -33,8 +34,18 @@
 #' An identification variable can be set in Idt parameter. By default, number of row is used.
 #' There are two source of outliers: i) outliers in the two FAMD dimension space, where the cutpoints are set
 #' as quantiles given (inf=0.1 and sup=0.9 in both dimensions by default) and ii) outliers with respect
-#' to the fitted probability. The dependent variable is set to 1 for the mimority class, and 0 for the majority class.
+#' to the fitted probability. The dependent variable is set to 1 for the minority class, and 0 for the majority class.
 #' Points considered outliers are those for which abs(vardep-fittedprob) excede parameter cutprob.
+#'
+#' ## Troubleshooting
+#'  * Check missings. Missing values are not allowed.
+#'  * By default selec=0. Setting selec=1 may sometimes imply that no variables are selected; an error message is shown in this case.
+#'  * Models with only two input variables could lead to plot generation problems.
+#'  * Be sure that variables named in listconti are all numeric.
+#'  * If some numeric variable is constant at one single value, process is stopped since numeric  Min-max standarization is performed,
+#'  and NaN values are generated.
+#'	* Dependent variable can not be named x,y,z,x1,x2. 
+#'	* When there are only categorical variables as input use mcacontour instead
 #'
 #' @return A list with the following objects:\describe{
 #' \item{graph1_graph6}{plots for dimension outliers}
@@ -59,7 +70,7 @@
 #     at http://www.r-project.org/Licenses/GPL-3
 #
 ######################################################################
-famdcontourlabel<-function(dataf=dataf,Idt="",inf=0.10,sup=0.9,cutprob=0.5,...)
+famdcontourlabel<-function(dataf=dataf,Idt="",inf=0.10,sup=0.9,cutprob=0.5,sizerepel=3,...)
 
 {
   if (any(Idt=="")==FALSE)
@@ -68,7 +79,7 @@ famdcontourlabel<-function(dataf=dataf,Idt="",inf=0.10,sup=0.9,cutprob=0.5,...)
     vectorIdt<-dataf[,c(Idt)]
 
     salida<-famdcontour(dataf=dataf,...)
-
+    
     salida[[7]]$Idt<-vectorIdt
     salida[[10]]$Idt<-vectorIdt
 
@@ -87,36 +98,36 @@ salida<-famdcontour(dataf=dataf,...)
     corte4<-quantile(salida[[7]]$y, probs = sup) # decile
 
     salida[[7]]$condicion<-ifelse(salida[[7]]$x<corte1|salida[[7]]$x>corte2|salida[[7]]$y<corte3|salida[[7]]$y>corte4,1,0)
-
-
+    
+    options(ggrepel.max.overlaps = Inf)
     glabel1<-salida[[1]]+geom_label_repel(aes(label = ifelse(salida[[7]]$condicion==1,
-    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel2<-salida[[2]]+geom_label_repel(aes(label = ifelse(salida[[7]]$condicion==1,
-    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel3<-salida[[3]]+geom_label_repel(aes(label = ifelse(salida[[7]]$condicion==1,
-    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel4<-salida[[4]]+geom_label_repel(aes(label = ifelse(salida[[7]]$condicion==1,
-    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel5<-salida[[5]]+geom_label_repel(aes(label = ifelse(salida[[7]]$condicion==1,
-    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel6<-salida[[6]]+geom_label_repel(aes(label = ifelse(salida[[7]]$condicion==1,
-    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[7]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
 
 
     salida[[10]]$condicion2<-ifelse(abs(salida[[10]]$dife)>cutprob,1,0)
 
     glabel7<-salida[[1]]+geom_label_repel(aes(label = ifelse(salida[[10]]$condicion2==1,
-    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel8<-salida[[2]]+geom_label_repel(aes(label = ifelse(salida[[10]]$condicion2==1,
-    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel9<-salida[[3]]+geom_label_repel(aes(label = ifelse(salida[[10]]$condicion2==1,
-    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel10<-salida[[4]]+geom_label_repel(aes(label = ifelse(salida[[10]]$condicion2==1,
-    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel11<-salida[[5]]+geom_label_repel(aes(label = ifelse(salida[[10]]$condicion2==1,
-    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
     glabel12<-salida[[6]]+geom_label_repel(aes(label = ifelse(salida[[10]]$condicion2==1,
-    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=3)
+    as.character(salida[[10]]$Idt),'')),box.padding   = 0.35, point.padding = 0.4,segment.color = 'grey50',size=sizerepel)
 
 
     outliers1<-salida[[7]][which(salida[[7]]$condicion==1),]

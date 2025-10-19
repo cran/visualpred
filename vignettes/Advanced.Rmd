@@ -1,5 +1,5 @@
 ---
-title: "Advanced settings"
+title: "4-Advanced settings"
 output:
   html_document:
     df_print: paged
@@ -7,7 +7,7 @@ output:
     theme: cayman
     highlight: github
 vignette: >
-  %\VignetteIndexEntry{Advanced settings}
+  %\VignetteIndexEntry{4-Advanced settings}
   %\usepackage[UTF-8]{inputenc}    
   %\VignetteEngine{knitr::knitr}
 ---

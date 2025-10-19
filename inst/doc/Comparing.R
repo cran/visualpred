@@ -35,7 +35,7 @@ title2="  ",selec=0,modelo="svm",classvar=0)
   ggarrange(g1,g2,g3,g4,g5,ncol =2,nrow=3)
   
 
-## ----echo=F-------------------------------------------------------------------
+## ----tuning_representation, echo=FALSE, fig.height=10, fig.width=12-----------
 require(egg)
 library(visualpred)
 dataf<-spiral

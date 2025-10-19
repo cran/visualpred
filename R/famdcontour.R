@@ -1,3 +1,4 @@
+
 #' Contour plots and FAMD function for classification modeling
 #'
 #' This function presents visual graphics by means of FAMD.
@@ -6,9 +7,13 @@
 #' Machine learning algorithm predictions are presented in a filled contour setting
 #' @usage famdcontour(dataf=dataf,listconti,listclass,vardep,proba="",
 #' title="",title2="",depcol="",listacol="",alpha1=0.7,alpha2=0.7,alpha3=0.7,
-#' classvar=1,intergrid=0,selec=0,modelo="glm",nodos=3,maxit=200,decay=0.01,
-#' sampsize=400,mtry=2,nodesize=10,ntree=400,ntreegbm=500,shrink=0.01,
-#' bag.fraction=1,n.minobsinnode=10,C=100,gamma=10,Dime1="Dim.1",Dime2="Dim.2")
+#' classvar=1,intergrid=0,selec=0,
+#' modelo="glm",nodos=3,maxit=200,decay=0.01,
+#' sampsize=400,mtry=2,nodesize=10,ntree=400,
+#' ntreegbm=500,shrink=0.01,
+#' bag.fraction=1,n.minobsinnode=10,C=100,
+#' gamma=10,Dime1="Dim.1",Dime2="Dim.2",
+#' offsetx=0.1,offsety=0.1)
 #' @param dataf data frame.
 #' @param listconti Interval variables to use, in format c("var1","var2",...).
 #' @param listclass Class variables to use, in format c("var1","var2",...).
@@ -16,6 +21,8 @@
 #' @param proba  vector of probability predictions obtained externally (optional)
 #' @param Dime1,Dime2 FAMD Dimensions to consider. Dim.1 and Dim.2 by default.
 #' @param intergrid scale of grid for contour:0 if automatic
+#' @param offsetx margin control for contour in percent of rangex, default=0.1
+#' @param offsety margin control for contour in percent of rangey, default=0.1
 #' @param selec 1 if stepwise logistic variable selection is required, 0 if not.
 #' @param title plot main title
 #' @param title2 plot subtitle
@@ -39,7 +46,7 @@
 #' @param n.minobsinnode gbm:n.minobsinnode
 #' @param C svm Radial: C
 #' @param gamma svm Radial: gamma
-#' @keywords FAMD, classification, contour_curves
+#' @keywords FAMD classification contour_curves
 #' @export
 #' @import MASS
 #' @import ggplot2
@@ -67,12 +74,13 @@
 #' Color scheme can be altered using depcol and listacol, as well as alpha transparency values.
 #'
 #'## Predictive modeling
-#' For predictive modeling, selec=1 selects variables with a simple stepwise logistic regression.
-#' By default select=0.
-#' Logistic regression is used by default. Basic parameter setting is supported for algorithms nnet, rf,gbm and svm-RBF.
+#' Logistic regression (glm) is used as default predictive model. Algorithms nnet, rf,gbm and svm-RBF can be used with basic parameter setting.
 #' A vector of fitted probabilities obtained externally from other
-#' algorithms can be imported in parameter proba=nameofvector. Contour curves are then
+#' algorithms can also be imported in parameter proba=nameofvector. Contour curves are in this particular case 
 #' computed based on this vector.
+#' Before perfroming predictive modeling, selec=1 can be used to select variables with a stepwise BIC logistic regression.
+#' By default select=0 (all variables input are used). It is recommended to make variable selection process before using famdcontour, and
+#' use only useful variables as input.
 #'
 #' ## Contour curves
 #' Contour curves are build by the following process: i) the chosen algorithm model is trained and all
@@ -89,11 +97,12 @@
 #'
 #' ## Troubleshooting
 #'  * Check missings. Missing values are not allowed.
-#'  * By default selec=0. Setting selec=1 may sometimes imply that no variables are selected; an error message is shown n this case.
+#'  * By default selec=0. Setting selec=1 may sometimes imply that no variables are selected; an error message is shown in this case.
 #'  * Models with only two input variables could lead to plot generation problems.
 #'  * Be sure that variables named in listconti are all numeric.
-#'  * If some numeric variable is constant at one single value, process is stopped since numeric  Min-max standarization is performed,
-#'  and NaN values are generated.
+#'  * If some numeric variable is constant at one single value, process is stopped since numeric  Min-max standarization is performed, and NaN values are generated.
+#'	* Dependent variable can not be named x,y,z,x1,x2. 
+#'	* When there are only categorical variables as input use mcacontour instead
 #'
 #' @return A list with the following objects:\describe{
 #' \item{graph1}{plot of points on FAMD first two dimensions}
@@ -105,8 +114,10 @@
 #' \item{df1}{ data frame used for graph1}
 #' \item{df2}{ data frame used for contour curves}
 #' \item{df3}{ data frame used for variable names}
+#' \item{df4}{ data frame for use in famdcontourlabel}
 #' \item{listconti}{interval variables used-selected }
 #' \item{listclass}{class variables used-selected }
+#' #' \item{...}{color schemes and other parameters }
 #' }
 #' @references Pages J. (2004). Analyse factorielle de donnees mixtes. Revue Statistique Appliquee.  LII (4). pp. 93-111.
 ######################################################################
@@ -129,11 +140,15 @@
 #
 ######################################################################
 famdcontour<-function(dataf=dataf,listconti,listclass,vardep,proba="",
-title="",title2="",depcol="",listacol="",alpha1=0.7,alpha2=0.7,alpha3=0.7,
+title="",title2="",depcol="",listacol="",
+alpha1=0.7,alpha2=0.7,alpha3=0.7,
 classvar=1,intergrid=0,selec=0,modelo="glm",
-nodos=3,maxit=200,decay=0.01,sampsize=400,mtry=2,nodesize=10,ntree=400,ntreegbm=500,
-shrink=0.01,bag.fraction=1,n.minobsinnode=10,C=100,
-gamma=10,Dime1="Dim.1",Dime2="Dim.2")
+nodos=3,maxit=200,decay=0.01,sampsize=400,mtry=2,
+nodesize=10,ntree=400,ntreegbm=500,
+shrink=0.01,bag.fraction=1,
+n.minobsinnode=10,C=100,
+gamma=10,Dime1="Dim.1",Dime2="Dim.2",
+offsetx=0.1,offsety=0.1)
 
 
 {
@@ -236,13 +251,16 @@ gamma=10,Dime1="Dim.1",Dime2="Dim.2")
 
     if (selec==1)
     {
-
-      formu1<-paste("factor(",vardep,")~.")
-      full.model <-stats::glm(stats::formula(formu1), data = dataf, family = binomial(link="logit"))
-      step.model <- full.model %>% stepAIC(trace = FALSE)
-      cosa<-attr(stats::terms(step.model), "term.labels")
-
-
+      
+      k <- log(nrow(dataf))
+      
+      formu1 <- paste("factor(", vardep, ") ~ .")
+      formu2 <- paste("factor(", vardep, ") ~ 1")
+      full.model <- stats::glm(stats::formula(formu1), data = dataf, family = binomial(link = "logit"))
+      null.model <- stats::glm(stats::formula(formu2), data = dataf, family = binomial(link = "logit"))
+      step.model<-stepAIC(null.model,scope=list(upper=full.model),direction="both",trace=FALSE,k=k)
+      cosa <- attr(stats::terms(step.model), "term.labels")
+    
       # Reduce data frame
 
       if (any(listclass==c(""))==FALSE)
@@ -274,32 +292,12 @@ gamma=10,Dime1="Dim.1",Dime2="Dim.2")
 
     }
 
-    # LA DEPENDIENTE A char
-
     vectordep<-as.data.frame(dataf[,vardep])
 
     dataf[,c(vardep)]<-as.character(dataf[,c(vardep)])
 
 
-  # # QUITO LA VAR. DEPENDIENTE Y AÑADO VARIABLE FANTASMA COSA POR SI ACASO
-  # if (any(listclass==c(""))==FALSE)
-  # {
-  #   if (any(listconti==c(""))==FALSE)
-  #   {
-  #     dataf<-dataf[,c(listconti,listclass)]
-  #   }
-  #   if (any(listconti==c(""))==TRUE)
-  #   {
-  #     dataf<-dataf[,c(listclass)]
-  #   }
-  # }
-  #
-  # if (any(listclass==c(""))==TRUE||length(listclass)==0)
-  # {
-  #   dataf<-dataf[,c(listconti)]
-  #   dataf<-as.data.frame(dataf)
-  # }
-co=0
+  co=0
 if (any(listclass==c(""))==TRUE||length(listclass)==0)
     {
       co=1
@@ -308,10 +306,10 @@ if (any(listclass==c(""))==TRUE||length(listclass)==0)
       dataf<-as.data.frame(dataf)
 }
 
-  # FUNCIÓN MCA CON FAMD
+  # FUNCTION MCA WITH FAMD
   colu<-which(colnames(dataf)==vardep)
   mca1= FAMD(dataf,sup.var=colu,graph=FALSE,ncp=5)
-  # mca1_vars_df1 = data.frame(mca1$var$coord,Variable=row.names(mca1$var$coord))
+  
 if (co==1)
   {
   dataf$cosa<-NULL
@@ -352,8 +350,7 @@ if (co==1)
   maxi2<-max(mca1$ind$coord$dimf2)
   mini2<-max(mca1$ind$coord$dimf2)
 
-  # Retoco coordenadas var. quanti
-
+  
   mca1_vars_df1$dimf1<-mca1_vars_df1[,c(Dime1)]
   mca1_vars_df1$dimf2<-mca1_vars_df1[,c(Dime2)]
 
@@ -371,12 +368,12 @@ if (co==1)
     mca1_vars_df1<-rbind(mca1_vars_df1,mca1_vars_df2)
   }
 
-# SUPLEMENTARIA
+# SUPLEMENTARY
   variss$dimf1<-variss[,c(Dime1)]
   variss$dimf2<-variss[,c(Dime2)]
 
 
-  # CONTEO DE FRECUENCIAS EN EL dataf mca1_obs_df
+  # FREQUENCIES dataf mca1_obs_df
 
   au<-as.data.frame(count.dups(mca1$ind$coord))
   au$Frecu<-au$N
@@ -385,7 +382,7 @@ if (co==1)
   mca1$ind$coord<-inner_join(mca1$ind$coord,au, by = c("dimf1","dimf2"))
 
 
-  # CONSTRUCCIÓN DE REJILLA Y PREDICCIÓN CONTOUR
+  # GRID CONSTRUCTION AND PREDICTION CONTOUR
 
   dataf[,vardep]<-factor(dataf[,vardep],levels=c(mayoritaria,minoritaria))
 
@@ -393,7 +390,7 @@ if (co==1)
   formu<-stats::formula(formu)
 
   # *********************
-  # MODELOS
+  # MODELS
   # *********************
 if (any(proba=="")==TRUE)
 {
@@ -498,19 +495,28 @@ if (any(proba=="")==TRUE)
   t <-aggregate(unia, by=list(unia$x,unia$y),
                       FUN=mean, na.rm=TRUE)
 
-
   filasfin<-nrow(t)
 
   t<-t[order(t$x,t$y),]
 
-  # Aquí miro min max
-  minx<-min(t$x)
-  miny<-min(t$y)
-  maxx<-max(t$x)
-  maxy<-max(t$y)
+  # minx<-min(t$x)
+  # miny<-min(t$y)
+  # maxx<-max(t$x)
+  # maxy<-max(t$y)
 
-  maxx<-maxx+intergrid
-  maxy<-maxy+intergrid
+  minx<-min(mca1$ind$coord$dimf1)
+  miny<-min(mca1$ind$coord$dimf2)
+  maxx<-max(mca1$ind$coord$dimf1)
+  maxy<-max(mca1$ind$coord$dimf2)
+  
+  r1<-maxx-minx
+  r2<-maxy-miny
+ 
+  maxx<-maxx+offsetx*r1
+  maxy<-maxy+offsety*r2
+
+  minx<-minx-offsetx*r1
+  miny<-miny-offsety*r2
 
   filas<-nrow(t)
 
@@ -518,25 +524,26 @@ if (any(proba=="")==TRUE)
   rango2<-maxx-minx
 
   if (intergrid==0) {
-    intergrid=0.5*rango1*rango2/filas
-    intergrid=sqrt(intergrid)
-  }
-
+     intergrid=0.5*rango1*rango2/filas
+     intergrid=sqrt(intergrid)
+   }
+  
+  
   f<-data.frame()
   for (x in seq(minx,maxx,intergrid)) {
     for (y in seq(miny,maxy,intergrid)){
       b<-cbind(x,y)
       f<-rbind(f,b)
-
     }
   }
 
   filas2<-nrow(f)
 
   t<-t[,c("x","y","z")]
-
-  # AQUÍ SE INTERPOLA EN LOS PUNTOS CREADOS EN EL GRID F ANTERIOR, CON BASE EN EL data t
-  t<-mba.points(t,xy.est=f)
+  
+  
+  # interpolation 
+  t<-suppressWarnings(mba.points(t,xy.est=f))
 
   t<-as.data.frame(t)
 
@@ -549,15 +556,14 @@ if (any(proba=="")==TRUE)
   t$z<-ifelse(t$z<0,0.00000001,t$z)
   t$z<-ifelse(t$z>1,0.9999999,t$z)
 
-
   t<-t[,c("x","y","z")]
 
   mca1$ind$coord$x<-mca1$ind$coord$dimf1
   mca1$ind$coord$y<-mca1$ind$coord$dimf2
 
-  # GRAFICOS
+  # GRAPHICS
 
-  # Dimensiones
+  # Dimensions
 
   first<-as.numeric(substr(c(Dime1),5,5))
   second<-as.numeric(substr(c(Dime2),5,5) )
@@ -631,7 +637,11 @@ if (any(proba=="")==TRUE)
 
   breaks=c(0,0.25,0.50,0.75,0.95,1)
 
+  infi1=min(t$x)
+  maxi1=max(t$x)
+  
   g2<-ggplot(mca1$ind$coord, aes(x=x, y=y)) + theme_bw()+
+    scale_x_continuous(limits = c(infi1,maxi1))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
     geom_point(aes(colour=minori,size=Frecu,alpha=minori))+
     scale_alpha_manual(values = c(alpha1, alpha2),guide="none")+
@@ -657,7 +667,8 @@ if (classvar==1)
 
   miniz<-min(t$z)
   maxiz<-max(t$z)
-
+  
+  
   for (i in seq(1,5,by=1))
   {
 
@@ -673,7 +684,6 @@ if (classvar==1)
 
      g3<-g2+ geom_contour_filled(data=t, aes(x=x, y=y,z=z),alpha=0.65,breaks=breaks)+
      scale_fill_grey(start=inicio,end=fin)
-
 
 
   gradi<-ggplot(union, aes(x=x, y=y)) + theme_bw()+
@@ -708,6 +718,7 @@ if (classvar==1)
 
 
   etivar<-ggplot(mca1$ind$coord, aes(x=x, y=y)) + theme_bw()+
+    scale_x_continuous(limits = c(infi1,maxi1))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
     geom_point(aes(colour=minori,size=Frecu,alpha=minori))+
     scale_alpha_manual(values = c(alpha1, alpha2),guide="none")+
@@ -723,32 +734,52 @@ if (classvar==1)
                                   fontface=2),size=5,show.legend=F,colour = "orangered4")
   }
 
+etivar<-etivar+
+  # Puntos invisibles para la leyenda
+  geom_point(data = mca1_vars_df1, aes(x = dimf1, y = dimf2, colour = Variable), 
+             alpha = 0, size = 0, show.legend = TRUE) +
+  # Texto visible
+  geom_text(data = mca1_vars_df1, aes(x = dimf1, y = dimf2, label = rownames(mca1_vars_df1), colour = Variable),
+            show.legend = FALSE) +
+  colScale2
 
-  etivar<-etivar+
-    geom_text(data = mca1_vars_df1 ,aes(x =dimf1,y =dimf2,label = rownames(mca1_vars_df1 ),
-    colour = Variable))+colScale2
+etivar<-etivar+geom_hline(yintercept = 0, colour = "gray70") +
+  geom_vline(xintercept = 0, colour = "gray70")+
+  ggtitle(title,subtitle=title2)+
+    theme(
+      plot.title = element_text(hjust=0.5,color="blue"),
+      plot.subtitle= element_text(hjust=0.5,color="orangered4")
+    )+  xlab(ejex)+ylab(ejey)
 
-  etivar<-etivar+geom_hline(yintercept = 0, colour = "gray70") +
-    geom_vline(xintercept = 0, colour = "gray70")+
-    ggtitle(title,subtitle=title2)+
-      theme(
-        plot.title = element_text(hjust=0.5,color="blue"),
-        plot.subtitle= element_text(hjust=0.5,color="orangered4")
-      )+  xlab(ejex)+ylab(ejey)
-
-  etivar<-etivar+guides(colour = guide_legend("", override.aes = list(size = 4,alpha = 1)),
-    size=guide_legend(title="Freq", override.aes = list(alpha = 1))
-       )
-
-  etivar2<-etivar+geom_contour_filled(data=t, aes(x=x, y=y,z=z),alpha=0.65,breaks=breaks)+
-    scale_fill_grey(start=inicio,end=fin)
+etivar<-etivar+guides(colour = guide_legend("", override.aes = list(
+    size = 4,
+    alpha = 1,
+    shape = 19,  # Punto sólido
+    label = ""   # Sin texto
+  )),
+  size=guide_legend(title="Freq", override.aes = list(alpha = 1))
+     )
+  	  
+	etivar2<-etivar+geom_contour_filled(data=t, aes(x=x, y=y,z=z),alpha=0.65,breaks=breaks)+
+  scale_fill_grey(start=inicio,end=fin) +
+  guides(colour = guide_legend("", override.aes = list(
+    size = 4,
+    alpha = 1,
+    shape = 19,  # Punto sólido
+    label = ""   # Sin texto
+  )),
+  size=guide_legend(title="Freq", override.aes = list(alpha = 1))
+  )
+  
 
 
   cosa<-list(g2,g3,etivar,etivar2,gradi,gradi2,mca1$ind$coord,t,mca1_vars_df1,union,
              listconti,listclass,colScale,colScale2)
   names(cosa)<-c("graph1","graph2","graph3","graph4","graph5","graph6",
-                 "df1","df2","df3","listconti","listclass")
-    return(cosa)
+                 "df1","df2","df3","df4","listconti","listclass")
+      return(cosa)
 }
+
+
 
 

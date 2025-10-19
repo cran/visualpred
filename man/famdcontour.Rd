@@ -6,9 +6,13 @@
 \usage{
 famdcontour(dataf=dataf,listconti,listclass,vardep,proba="",
 title="",title2="",depcol="",listacol="",alpha1=0.7,alpha2=0.7,alpha3=0.7,
-classvar=1,intergrid=0,selec=0,modelo="glm",nodos=3,maxit=200,decay=0.01,
-sampsize=400,mtry=2,nodesize=10,ntree=400,ntreegbm=500,shrink=0.01,
-bag.fraction=1,n.minobsinnode=10,C=100,gamma=10,Dime1="Dim.1",Dime2="Dim.2")
+classvar=1,intergrid=0,selec=0,
+modelo="glm",nodos=3,maxit=200,decay=0.01,
+sampsize=400,mtry=2,nodesize=10,ntree=400,
+ntreegbm=500,shrink=0.01,
+bag.fraction=1,n.minobsinnode=10,C=100,
+gamma=10,Dime1="Dim.1",Dime2="Dim.2",
+offsetx=0.1,offsety=0.1)
 }
 \arguments{
 \item{dataf}{data frame.}
@@ -70,6 +74,10 @@ bag.fraction=1,n.minobsinnode=10,C=100,gamma=10,Dime1="Dim.1",Dime2="Dim.2")
 \item{gamma}{svm Radial: gamma}
 
 \item{Dime1, Dime2}{FAMD Dimensions to consider. Dim.1 and Dim.2 by default.}
+
+\item{offsetx}{margin control for contour in percent of rangex, default=0.1}
+
+\item{offsety}{margin control for contour in percent of rangey, default=0.1}
 }
 \value{
 A list with the following objects:\describe{
@@ -82,8 +90,10 @@ A list with the following objects:\describe{
 \item{df1}{ data frame used for graph1}
 \item{df2}{ data frame used for contour curves}
 \item{df3}{ data frame used for variable names}
+\item{df4}{ data frame for use in famdcontourlabel}
 \item{listconti}{interval variables used-selected }
 \item{listclass}{class variables used-selected }
+#' \item{...}{color schemes and other parameters }
 }
 }
 \description{
@@ -99,12 +109,13 @@ Minority class on dependent variable category is represented as red, majority ca
 Color scheme can be altered using depcol and listacol, as well as alpha transparency values.
 \subsection{Predictive modeling}{
 
-For predictive modeling, selec=1 selects variables with a simple stepwise logistic regression.
-By default select=0.
-Logistic regression is used by default. Basic parameter setting is supported for algorithms nnet, rf,gbm and svm-RBF.
+Logistic regression (glm) is used as default predictive model. Algorithms nnet, rf,gbm and svm-RBF can be used with basic parameter setting.
 A vector of fitted probabilities obtained externally from other
-algorithms can be imported in parameter proba=nameofvector. Contour curves are then
+algorithms can also be imported in parameter proba=nameofvector. Contour curves are in this particular case
 computed based on this vector.
+Before perfroming predictive modeling, selec=1 can be used to select variables with a stepwise BIC logistic regression.
+By default select=0 (all variables input are used). It is recommended to make variable selection process before using famdcontour, and
+use only useful variables as input.
 }
 
 \subsection{Contour curves}{
@@ -127,11 +138,12 @@ of the presence of dependent variable category/color.
 \subsection{Troubleshooting}{
 \itemize{
 \item Check missings. Missing values are not allowed.
-\item By default selec=0. Setting selec=1 may sometimes imply that no variables are selected; an error message is shown n this case.
+\item By default selec=0. Setting selec=1 may sometimes imply that no variables are selected; an error message is shown in this case.
 \item Models with only two input variables could lead to plot generation problems.
 \item Be sure that variables named in listconti are all numeric.
-\item If some numeric variable is constant at one single value, process is stopped since numeric  Min-max standarization is performed,
-and NaN values are generated.
+\item If some numeric variable is constant at one single value, process is stopped since numeric  Min-max standarization is performed, and NaN values are generated.
+\item Dependent variable can not be named x,y,z,x1,x2.
+\item When there are only categorical variables as input use mcacontour instead
 }
 }
 }

@@ -5,7 +5,7 @@
 #' @inheritParams mcacontour
 #' @param jit jit distance. Default 0.1.
 #' @param ... options to be passed from mcacontour
-#' @keywords MCA, classification, contour_curves
+#' @keywords MCA classification contour_curves
 #' @export
 #' @import MASS
 #' @import ggplot2

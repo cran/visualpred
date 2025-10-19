@@ -1,16 +1,17 @@
 ---
-title: "visualpred package"
+title: "1-visualpred package"
 author: "Javier Portela"
 date: "`r Sys.Date()`"
 output:
-  html_document:
-    df_print: paged
   prettydoc::html_pretty:
     theme: cayman
     highlight: github
-vignette: >
-  %\VignetteIndexEntry{visualpred package}
-  %\usepackage[UTF-8]{inputenc}    
+  html_document:
+    df_print: paged
+  pdf_document: default
+vignette: > 
+  %\VignetteIndexEntry{1-visualpred package}
+  %\usepackage[UTF-8]
   %\VignetteEngine{knitr::knitr}
 ---
 ```{r message=FALSE, echo=FALSE, warning=FALSE}
@@ -18,9 +19,9 @@ knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
-  fig.height = 6,
-  fig.width = 7.71,
-  dpi=100,
+  fig.height = 7,
+  fig.width = 9,
+    dpi=100,
   results = "asis"
 )
 ```

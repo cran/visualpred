@@ -11,7 +11,7 @@
 #' ntree=400,ntreegbm=500,shrink=0.01,bag.fraction=1,n.minobsinnode=10,C=100,gamma=10)
 #' @param bins  Number of bins for categorize interval variables .
 #' @inheritParams famdcontour
-#' @keywords MCA, classification, contour_curves
+#' @keywords MCA classification contour_curves
 #' @export
 #' @import MASS
 #' @import ggplot2
@@ -36,6 +36,14 @@
 #' class variables in the same plot. In addition, interval variables listed in listconti are categorized to
 #' the number given in bins parameter (by default 8 bins). Further explanation about machine learning classification
 #' and contour curves, see the famdcontour function documentation.
+#' ## Troubleshooting
+#'  * Check missings. Missing values are not allowed.
+#'  * By default selec=0. Setting selec=1 may sometimes imply that no variables are selected; an error message is shown in this case.
+#'  * Models with only two input variables could lead to plot generation problems.
+#'  * Be sure that variables named in listconti are all numeric.
+#'  * If some numeric variable is constant at one single value, process is stopped since numeric  Min-max standarization is performed,
+#'  and NaN values are generated.
+#'	* Dependent variable can not be named x,y,z,x1,x2. 
 #' @return A list with the following objects:\describe{
 #' \item{graph1}{plot of points on MCA  two dimensions}
 #' \item{graph2}{plot of points and variables}
@@ -137,7 +145,7 @@ Dime1=Dime1,Dime2=Dime2,bins=bins,selec=selec)
   formu<-paste("factor(",vardep,")~.")
   formu<-stats::formula(formu)
   # *********************
-  # MODELOS
+  # MODELS
   # *********************
 
   if (any(proba=="")==TRUE)
@@ -278,7 +286,7 @@ Dime1=Dime1,Dime2=Dime2,bins=bins,selec=selec)
 
   ag<-ag[,c("x","y","z")]
 
-  # AQUÍ SE INTERPOLA EN LOS PUNTOS CREADOS EN EL GRID F ANTERIOR, CON BASE EN EL dataf AG
+  
   otro<-mba.points(ag,xy.est=f)
 
   otro<-as.data.frame(otro)
@@ -307,9 +315,9 @@ Dime1=Dime1,Dime2=Dime2,bins=bins,selec=selec)
 
   uni$Variable<-as.character(uni$Variable)
 
-  # GRAFICOS
+  # GRAPHICS
 
-  # COLORES
+  # COLORS
 
   if (any(depcol=="")==TRUE)
   {
@@ -412,47 +420,60 @@ Dime1=Dime1,Dime2=Dime2,bins=bins,selec=selec)
       plot.subtitle= element_text(hjust=0.5,color="orangered4")
     )
 
+g4<-ggplot(daf, aes(x=x, y=y)) + theme_bw()+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_point(aes(colour=minori,size=Frecu,alpha =minori))+
+  scale_alpha_manual(values = c(alpha1, alpha2),guide="none")+
+  scale_size(name="Freq",breaks=bre,range=rango)
 
-  g4<-ggplot(daf, aes(x=x, y=y)) + theme_bw()+
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-    geom_point(aes(colour=minori,size=Frecu,alpha =minori))+
-    scale_alpha_manual(values = c(alpha1, alpha2),guide="none")+
-    scale_size(name="Freq",breaks=bre,range=rango)
+if (classvar==1)
+{
+  g4<-g4+
+    geom_text(data = variss,aes(x =dimf1, y =dimf2,label = rownames(variss),
+                                fontface=2),size=5,show.legend=F,colour = "orangered4")
+}
 
-  if (classvar==1)
-  {
-    g4<-g4+
-      geom_text(data = variss,aes(x =dimf1, y =dimf2,label = rownames(variss),
-                                  fontface=2),size=5,show.legend=F,colour = "orangered4")
-  }
+g4<-g4+geom_density2d(colour = "gray80",alpha=1,show.legend=FALSE)+
+  xlab(ejex)+ylab(ejey)+
+  # Primero: puntos invisibles para crear la leyenda
+  geom_point(data = uni, aes(x = x, y = y, colour = Variable), 
+             alpha = 0, size = 0, show.legend = TRUE) +
+  # Segundo: texto visible en el gráfico
+  geom_text(data = uni, aes(x = x, y = y, label = rownames(uni), colour = Variable, fontface = 1), 
+            size = sort(uni$tama), show.legend = FALSE) +
+  colScale2
 
-  g4<-g4+geom_density2d(colour = "gray80",alpha=1,show.legend=FALSE)+
-    xlab(ejex)+ylab(ejey)+
-    geom_text(data = uni,aes(x =x, y =y,label = rownames(uni),
-colour = Variable,fontface=1),size=sort(uni$tama),show.legend =F)+
-    colScale2
-
-  g4<-g4+  ggtitle(title, subtitle = title3)+
-    theme(
-      plot.title = element_text(hjust=0.5,color="blue"),
-      plot.subtitle= element_text(hjust=0.5,color="orangered4")
-    )+
-    guides(colour = guide_legend("", override.aes = list(size = 4,alpha = 1)),
-           size=guide_legend(title="Freq", override.aes = list(alpha = 1))
-    )
-
+g4<-g4+  ggtitle(title, subtitle = title3)+
+  theme(
+    plot.title = element_text(hjust=0.5,color="blue"),
+    plot.subtitle= element_text(hjust=0.5,color="orangered4")
+  )+
+  guides(colour = guide_legend("", override.aes = list(
+    size = 3, 
+    alpha = 1,
+    shape = 19,    # Punto sólido
+    label = ""     # Sin texto
+  )),
+  size=guide_legend(title="Freq", override.aes = list(alpha = 1))
+  )
+    
   g3<-g2+ geom_contour_filled(data=t, aes(x=x, y=y,z=z),alpha=0.65,breaks=breaks)+scale_fill_grey(start=inicio,end=fin)
 
-  g5<-g4+ geom_contour_filled(data=t, aes(x=x, y=y,z=z),alpha=0.65,breaks=breaks)+scale_fill_grey(start=inicio,end=fin)+
-    ggtitle(title, subtitle = title3)+
-    theme(
-      plot.title = element_text(hjust=0.5,color="blue"),
-      plot.subtitle= element_text(hjust=0.5,color="orangered4")
-    )+
-    guides(colour = guide_legend("", override.aes = list(size = 4,alpha = 1)),
-           size=guide_legend(title="Freq", override.aes = list(alpha = 1))
-    )
-
+g5<-g4+ geom_contour_filled(data=t, aes(x=x, y=y,z=z),alpha=0.65,breaks=breaks)+scale_fill_grey(start=inicio,end=fin)+
+  ggtitle(title, subtitle = title3)+
+  theme(
+    plot.title = element_text(hjust=0.5,color="blue"),
+    plot.subtitle= element_text(hjust=0.5,color="orangered4")
+  )+
+  guides(colour = guide_legend("", override.aes = list(
+    size = 3, 
+    alpha = 1,
+    shape = 19,    # Punto sólido
+    label = ""     # Sin texto
+  )),
+  size=guide_legend(title="Freq", override.aes = list(alpha = 1))
+  )
+  
   gradi<-ggplot(union, aes(x=x, y=y)) + theme_bw()+
     geom_point(aes(colour=z,size=Frecu),alpha =alpha3)+
     scale_size(name="Freq",breaks=bre,range=rango)+
@@ -490,4 +511,5 @@ high = "darkred", space = "Lab",name="vardep-p" )
                  "df2","df3","df4","listconti","listclass")
   return(cosa)
 }
+
 

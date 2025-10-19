@@ -23,9 +23,7 @@ ntree=400,ntreegbm=500,shrink=0.01,bag.fraction=1,n.minobsinnode=10,C=100,gamma=
 
 \item{bins}{Number of bins for categorize interval variables .}
 
-\item{Dime1}{FAMD Dimensions to consider. Dim.1 and Dim.2 by default.}
-
-\item{Dime2}{FAMD Dimensions to consider. Dim.1 and Dim.2 by default.}
+\item{Dime1, Dime2}{FAMD Dimensions to consider. Dim.1 and Dim.2 by default.}
 
 \item{classvar}{1 if dependent variable categories are plotted as supplementary}
 
@@ -103,6 +101,17 @@ This function applies MCA (Multiple Correspondence Analysis) in order to project
 class variables in the same plot. In addition, interval variables listed in listconti are categorized to
 the number given in bins parameter (by default 8 bins). Further explanation about machine learning classification
 and contour curves, see the famdcontour function documentation.
+\subsection{Troubleshooting}{
+\itemize{
+\item Check missings. Missing values are not allowed.
+\item By default selec=0. Setting selec=1 may sometimes imply that no variables are selected; an error message is shown in this case.
+\item Models with only two input variables could lead to plot generation problems.
+\item Be sure that variables named in listconti are all numeric.
+\item If some numeric variable is constant at one single value, process is stopped since numeric  Min-max standarization is performed,
+and NaN values are generated.
+\item Dependent variable can not be named x,y,z,x1,x2.
+}
+}
 }
 \examples{
 data(breastwisconsin1)

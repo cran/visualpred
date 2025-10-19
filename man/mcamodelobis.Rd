@@ -4,7 +4,7 @@
 \alias{mcamodelobis}
 \title{Basic MCA function for clasification}
 \usage{
-mcamodelobis(dataf=dataf,listconti,listclass, vardep,bins=8,selec=1,
+mcamodelobis(dataf=dataf,listconti,listclass, vardep,bins=8,selec=0,
 Dime1="Dim.1",Dime2="Dim.2")
 }
 \arguments{

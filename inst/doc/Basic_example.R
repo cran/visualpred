@@ -3,9 +3,9 @@ knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
-  fig.height = 6,
-  fig.width = 7.71,
-  dpi=100,
+  fig.height = 7,
+  fig.width = 9,
+    dpi=100,
   results = "asis"
 )
 

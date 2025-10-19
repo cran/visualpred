@@ -3,7 +3,7 @@
 #' This function presents visual graphics by means of Multiple correspondence Analysis projection.
 #' Interval variables are categorized to bins.
 #' Dependent classification variable is set as supplementary variable. It is used as base for mcacontour function.
-#' @usage mcamodelobis(dataf=dataf,listconti,listclass, vardep,bins=8,selec=1,
+#' @usage mcamodelobis(dataf=dataf,listconti,listclass, vardep,bins=8,selec=0,
 #' Dime1="Dim.1",Dime2="Dim.2")
 #' @param dataf data frame.
 #' @param listconti Interval variables to use, in format c("var1","var2",...).
@@ -37,7 +37,7 @@
 #' \item{axisy}{axis definition in plot}
 #' }
 #'
-mcamodelobis<-function(dataf=dataf,listconti,listclass, vardep,bins=8,selec=1,
+mcamodelobis<-function(dataf=dataf,listconti,listclass, vardep,bins=8,selec=0,
 Dime1="Dim.1",Dime2="Dim.2")
 {
 
@@ -102,11 +102,14 @@ fontface=numeric()
 
   if (selec==1)
   {
-
-    formu1<-paste("factor(",vardep,")~.")
-    full.model <-stats::glm(stats::formula(formu1), data = dataf, family = binomial(link="logit"))
-    step.model <- full.model %>% stepAIC(trace = FALSE)
-    cosa<-attr(stats::terms(step.model), "term.labels")
+    k <- log(nrow(dataf))
+    
+    formu1 <- paste("factor(", vardep, ") ~ .")
+    formu2 <- paste("factor(", vardep, ") ~ 1")
+    full.model <- stats::glm(stats::formula(formu1), data = dataf, family = binomial(link = "logit"))
+    null.model <- stats::glm(stats::formula(formu2), data = dataf, family = binomial(link = "logit"))
+    step.model<-stepAIC(null.model,scope=list(upper=full.model),direction="both",trace=FALSE,k=k)
+    cosa <- attr(stats::terms(step.model), "term.labels")
 
 
     # Reduce data frame
@@ -171,8 +174,7 @@ fontface=numeric()
       lapply(dataf[c(listconti,vardep)],factor)
   }
 
-  # LA DEPENDIENTE A FACTOR
-
+  
   dataf[,c(vardep)]<-as.factor(as.character(dataf[,c(vardep)]))
 
 
@@ -190,19 +192,13 @@ fontface=numeric()
     mca1_vars_df1 = data.frame(mca1$var$coord, Variable = rep(names(cats1), cats1))
   }
 
-  # cats2 =nlevels(dataf[,c(colu)])
-  # names(cats2)<-vardep
-
-
+  
   if (ncol(dataf)==2)
   {
     a<-  names(dataf)
     a<- a[a!=vardep]
     mca1_vars_df1 = data.frame(mca1$var$coord, Variable =a )
   }
-
-  # mca1_vars_df2= data.frame(mca1$quali.sup$coord, Variable = rep(names(cats2), cats2))
-  # mca1_vars_df2$Variable<-paste(".",mca1_vars_df2$Variable,sep="")
 
   mca1_obs_df = data.frame(mca1$ind$coord)
   mca1_obs_df<-cbind(mca1_obs_df,vardep=dataf[,vardep])
@@ -211,14 +207,12 @@ fontface=numeric()
   variss$Variable<-paste(".",vardep,sep="")
 
   mca1_vars_df1$tama<-4
-  # mca1_vars_df2$tama<-5
-  # uni<-rbind(mca1_vars_df1,mca1_vars_df2)
   uni<-mca1_vars_df1
   uni$fontface<-ifelse(uni$Variable==vardep,2,1)
   uni$Variable<-as.character(uni$Variable)
 
 
-  # SUPLEMENTARIA
+  # SUPLEMENTARY
   variss$dimf1<-variss[,c(Dime1)]
   variss$dimf2<-variss[,c(Dime2)]
 

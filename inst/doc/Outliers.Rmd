@@ -1,5 +1,5 @@
 ---
-title: "Plotting outliers"
+title: "3-Plotting outliers"
 output:
   html_document:
     df_print: paged
@@ -8,7 +8,7 @@ output:
     highlight: github
 vignette: >
   %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{Plotting outliers}
+  %\VignetteIndexEntry{3-Plotting outliers}
   %\usepackage[UTF-8]{inputenc}   
 ---
 
