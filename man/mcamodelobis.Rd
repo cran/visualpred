@@ -44,6 +44,6 @@ dataf<-breastwisconsin1
 listconti=c( "clump_thickness","uniformity_of_cell_shape","mitosis")
 listclass=c("")
 vardep="classes"
-result<-mcacontour(dataf=dataf,listconti,listclass,vardep,bins=8,title="",selec=1)
+result<-mcamodelobis(dataf=dataf,listconti,listclass,vardep,bins=8,selec=1)
 }
 \keyword{MCA}

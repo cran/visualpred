@@ -54,7 +54,7 @@
 #' @importFrom magrittr %>%
 #' @importFrom nnet nnet
 #' @import gbm
-#' @import e1071
+#' @importFrom e1071 svm
 #' @importFrom stats aggregate quantile
 #' @importFrom dplyr inner_join
 #' @importFrom randomForest randomForest

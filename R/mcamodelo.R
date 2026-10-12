@@ -1,3 +1,15 @@
+# Internal helper: quantile binning.
+# Quantile binning, written in base R. Returns an integer vector (0, 1, ..., bins-1) with the
+# index of the quantile interval of each value (NA stays NA).
+# A constant variable (a single distinct break) is assigned to bin 0.
+#' @noRd
+bin_quantile <- function(x, bins) {
+  br <- unique(stats::quantile(x, probs = seq(0, 1, length.out = bins + 1),
+                               na.rm = TRUE, names = FALSE))
+  if (length(br) < 2) return(rep(0L, length(x)))
+  as.integer(cut(x, breaks = br, include.lowest = TRUE, right = FALSE)) - 1L
+}
+
 #' Basic MCA function for clasification
 #'
 #' This function presents visual graphics by means of Multiple correspondence Analysis projection.
@@ -21,9 +33,9 @@
 #' listconti=c( "clump_thickness","uniformity_of_cell_shape","mitosis")
 #' listclass=c("")
 #' vardep="classes"
-#'result<-mcacontour(dataf=dataf,listconti,listclass,vardep,bins=8,title="",selec=1)
+#' result<-mcamodelobis(dataf=dataf,listconti,listclass,vardep,bins=8,selec=1)
 #' @import MASS
-#' @importFrom mltools bin_data
+#' @importFrom stats quantile binomial
 #' @importFrom FactoMineR MCA
 #' @importFrom dplyr inner_join
 #' @importFrom data.table data.table
@@ -148,7 +160,7 @@ fontface=numeric()
   {
     for(col in listconti)
     {
-        dataf[[col]] <- as.integer(bin_data(dataf[[col]],bins=bins,binType="quantile")) - 1L
+        dataf[[col]] <- bin_quantile(dataf[[col]], bins = bins)
     }
   }
 

@@ -12,3 +12,7 @@
 * Adjusting minor bugs in graphics
 * Adjusting changes to be used with new ggplot2 release
  
+ # visualpred 0.1.3
+
+* Removed dependency on 'mltools': quantile binning in `mcamodelobis()` is now done with base R.
+* Fixed example of `mcamodelobis()`.
